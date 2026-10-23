@@ -1,23 +1,21 @@
 import type { Metadata } from "next";
-import { Tiny5 } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import TransitionOverlay from "./components/TransitionOverlay";
-import IntroScreen from "./components/IntroScreen";
-import InteractiveDotGrid from "./components/InteractiveDotGrid";
-import { ThemeProvider } from "./components/ThemeProvider";
+import CustomCursor from "./components/CustomCursor";
+import ScrollProgress from "./components/ScrollProgress";
 
-const tiny5 = Tiny5({
-  weight: "400",
+const poppins = Poppins({
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
-  variable: "--font-tiny5",
+  variable: "--font-poppins",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Mohammad Iqbal - Junior Developer",
-  description: "Portfolio website of Mohammad Iqbal, a junior developer specializing in Next.js, Laravel, and Java",
+  title: "Mohammad Iqbal — Developer & Designer",
+  description: "Portfolio of Mohammad Iqbal, specializing in modern web development with Next.js, Laravel, and creative frontend design",
 };
 
 export default function RootLayout({
@@ -26,20 +24,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${tiny5.variable} bg-canvas transition-colors duration-300`}>
-      <body className="h-screen w-screen antialiased overflow-hidden bg-transparent text-ink">
-        <ThemeProvider>
-          <InteractiveDotGrid />
-          <IntroScreen />
-          <div className="h-full w-full flex flex-col">
-            <Header />
-            <main className="flex-1 overflow-y-auto">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <TransitionOverlay />
-        </ThemeProvider>
+    <html lang="en" className={poppins.variable}>
+      <body>
+        <CustomCursor />
+        <ScrollProgress />
+        <div className="min-h-screen w-full flex flex-col">
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );

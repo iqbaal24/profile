@@ -1,127 +1,130 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { ThemeSwitcher } from './ThemeSwitcher';
+import { useState, useEffect } from 'react';
 
 export default function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState('profile');
 
-  const getActiveSection = () => {
-    if (pathname === '/') return 'profile';
-    if (pathname === '/skills') return 'skills';
-    if (pathname.startsWith('/projects')) return 'projects';
-    return 'profile';
+  useEffect(() => {
+    const sectionIds = ['profile-section', 'skills-section', 'projects-section'];
+    const sectionMap: Record<string, string> = {
+      'profile-section': 'profile',
+      'skills-section': 'skills',
+      'projects-section': 'projects',
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(sectionMap[entry.target.id] ?? 'profile');
+          }
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px' }
+    );
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
-  const activeSection = getActiveSection();
-
   return (
-    <header className="bg-canvas sticky top-0 z-50 border-b border-ink w-full flex-shrink-0">
-      <div className="flex justify-between items-center w-full px-5 sm:px-8 py-4 mx-auto">
-        <Link
-          href="/"
-          className="text-[24px] uppercase tracking-widest font-bold text-ink hover:opacity-80 transition-opacity"
+    <header className="fixed top-8 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-32px)] max-w-5xl">
+      <nav className="bg-[rgba(229,229,229,0.7)] backdrop-blur-md rounded-full px-8 py-4 flex items-center justify-between shadow-sm">
+        {/* Logo */}
+        <button
+          onClick={() => scrollTo('profile-section')}
+          className="text-base font-black uppercase tracking-tight text-black"
         >
-          Iqbaal
-        </Link>
+          MI
+        </button>
 
-        <nav className="hidden md:flex gap-8 items-center">
-          <Link
-            href="/"
-            className={`text-sm uppercase tracking-widest font-semibold relative transition-colors duration-200 ${
-              activeSection === 'profile'
-                ? 'text-ink'
-                : 'text-ink-muted hover:text-ink'
-            }`}
-          >
-            Profile
-            {activeSection === 'profile' && (
-              <div className="absolute -bottom-2 left-0 right-0 h-[2px] bg-ink"></div>
-            )}
-          </Link>
-          <Link
-            href="/skills"
-            className={`text-sm uppercase tracking-widest font-semibold relative transition-colors duration-200 ${
-              activeSection === 'skills'
-                ? 'text-ink'
-                : 'text-ink-muted hover:text-ink'
-            }`}
-          >
-            Skills
-            {activeSection === 'skills' && (
-              <div className="absolute -bottom-2 left-0 right-0 h-[2px] bg-ink"></div>
-            )}
-          </Link>
-          <Link
-            href="/projects"
-            className={`text-sm uppercase tracking-widest font-semibold relative transition-colors duration-200 ${
-              activeSection === 'projects'
-                ? 'text-ink'
-                : 'text-ink-muted hover:text-ink'
-            }`}
-          >
-            Projects
-            {activeSection === 'projects' && (
-              <div className="absolute -bottom-2 left-0 right-0 h-[2px] bg-ink"></div>
-            )}
-          </Link>
-        </nav>
-
-        <div className="hidden md:flex items-center gap-4">
-          <ThemeSwitcher />
-          <button className="bg-ink text-canvas text-sm uppercase tracking-widest font-bold px-6 py-2 border border-ink hover:bg-canvas hover:text-ink transition-colors duration-200">
-            Contact Me
-          </button>
+        {/* Navigation Pills */}
+        <div className="hidden md:flex items-center gap-2">
+          {[
+            { label: 'Profile', id: 'profile-section', key: 'profile' },
+            { label: 'Skills', id: 'skills-section', key: 'skills' },
+            { label: 'Projects', id: 'projects-section', key: 'projects' },
+          ].map(({ label, id, key }) => (
+            <button
+              key={key}
+              onClick={() => scrollTo(id)}
+              className={`px-6 py-2 rounded-full text-xs font-semibold uppercase tracking-wide transition-all duration-300 ${
+                activeSection === key
+                  ? 'bg-black text-white'
+                  : 'bg-transparent text-black hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        <div className="md:hidden flex items-center gap-4 text-ink">
-          <ThemeSwitcher />
-          <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        {/* Contact Button */}
+        <a
+          href="mailto:mdiqbaal412@gmail.com"
+          className="hidden md:block px-6 py-2 rounded-full text-xs font-semibold uppercase tracking-wide bg-black text-white hover:bg-gray-800 transition-colors"
+        >
+          Contact
+        </a>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-black"
+          onClick={() => {
+            const menu = document.getElementById('mobile-menu');
+            menu?.classList.toggle('hidden');
+          }}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {isMobileMenuOpen ? (
-              <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        </div>
-      </div>
+      </nav>
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-canvas border-b border-ink px-5 sm:px-8 py-6 flex flex-col gap-6">
-          <Link
-            href="/"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={`text-sm uppercase tracking-widest font-bold ${activeSection === 'profile' ? 'text-ink' : 'text-ink-muted'}`}
+      <div
+        id="mobile-menu"
+        className="hidden md:hidden mt-4 bg-[rgba(229,229,229,0.95)] backdrop-blur-md rounded-3xl px-6 py-6 flex flex-col gap-3"
+      >
+        {[
+          { label: 'Profile', id: 'profile-section', key: 'profile' },
+          { label: 'Skills', id: 'skills-section', key: 'skills' },
+          { label: 'Projects', id: 'projects-section', key: 'projects' },
+        ].map(({ label, id, key }) => (
+          <button
+            key={key}
+            onClick={() => {
+              scrollTo(id);
+              document.getElementById('mobile-menu')?.classList.add('hidden');
+            }}
+            className={`px-6 py-3 rounded-full text-sm font-semibold uppercase tracking-wide transition-all ${
+              activeSection === key
+                ? 'bg-black text-white'
+                : 'bg-white text-black hover:bg-gray-200'
+            }`}
           >
-            Profile
-          </Link>
-          <Link
-            href="/skills"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={`text-sm uppercase tracking-widest font-bold ${activeSection === 'skills' ? 'text-ink' : 'text-ink-muted'}`}
-          >
-            Skills
-          </Link>
-          <Link
-            href="/projects"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={`text-sm uppercase tracking-widest font-bold ${activeSection === 'projects' ? 'text-ink' : 'text-ink-muted'}`}
-          >
-            Projects
-          </Link>
-          <button className="bg-ink text-canvas border border-ink text-sm uppercase tracking-widest font-bold px-6 py-3 hover:bg-canvas hover:text-ink transition-colors duration-200 w-full text-center mt-4">
-            Contact Me
+            {label}
           </button>
-        </div>
-      )}
+        ))}
+        <a
+          href="mailto:mdiqbaal412@gmail.com"
+          className="px-6 py-3 rounded-full text-sm font-semibold uppercase tracking-wide bg-black text-white text-center"
+        >
+          Contact
+        </a>
+      </div>
     </header>
   );
 }

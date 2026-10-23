@@ -1,141 +1,221 @@
 @import "tailwindcss";
 
 @theme {
-  --color-canvas: var(--canvas);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
+  /* Editorial Minimalist Color Palette */
+  --color-ivory: #F8F8F6;
+  --color-black: #111111;
+  --color-teal: #2EC4B6;
+  --color-gray: #E5E5E5;
   
-  --color-primary: var(--ink);
-  --color-secondary: var(--ink-muted);
-  --color-on-surface: var(--ink);
-  --color-on-surface-variant: var(--ink-muted);
-  --color-surface-container: var(--canvas);
-  --color-surface-container-high: var(--canvas);
-  --color-surface-variant: var(--canvas);
+  /* Semantic tokens */
+  --color-canvas: var(--color-ivory);
+  --color-ink: var(--color-black);
+  --color-accent: var(--color-teal);
+  --color-muted: #666666;
   
-  --font-family-sans: var(--font-tiny5), system-ui, sans-serif;
-  --font-family-display: var(--font-tiny5), system-ui, sans-serif;
-  --font-family-mono: var(--font-tiny5), monospace;
-
+  /* Font families - Poppins */
+  --font-family-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-family-display: 'Poppins', system-ui, -apple-system, sans-serif;
+  
+  /* Spacing */
   --spacing-xs: 4px;
-  --spacing-sm: 12px;
-  --spacing-base: 8px;
+  --spacing-sm: 8px;
+  --spacing-base: 16px;
   --spacing-md: 24px;
   --spacing-lg: 48px;
   --spacing-xl: 80px;
-  --spacing-gutter: 24px;
-  --spacing-container-max: 1200px;
+  --spacing-2xl: 120px;
+  
+  /* Border radius - pill shapes */
+  --radius-pill: 9999px;
+  --radius-large: 24px;
 }
 
 @layer base {
-  :root {
-    --canvas: #ffffff;
-    --ink: #000000;
-    --ink-muted: #666666;
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
   
-  .dark {
-    --canvas: #000000;
-    --ink: #ffffff;
-    --ink-muted: #a3a3a3;
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  body {
+    background: var(--color-ivory);
+    color: var(--color-black);
+    font-family: var(--font-family-sans);
+    font-weight: 400;
+    line-height: 1.6;
+    cursor: none;
+  }
+  
+  /* Cursor handling */
+  body * {
+    cursor: none !important;
+  }
+  
+  /* Typography scale */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-display);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+  
+  p {
+    font-size: 14px;
+    line-height: 1.8;
+    text-align: justify;
+  }
+  
+  /* Remove default link styles */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  /* Image filters for B&W high contrast */
+  img {
+    filter: grayscale(100%) contrast(1.2);
   }
 }
 
-html {
-  color-scheme: light dark;
-  scroll-behavior: smooth;
-  overflow: hidden;
+/* Custom cursor */
+#custom-cursor {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: var(--color-teal);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
-body {
-  isolation: isolate;
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  font-family: var(--font-family-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+#custom-cursor.hover {
+  transform: scale(2.5);
 }
 
-/* Scroll snap behavior */
-.snap-y {
-  scroll-snap-type: y mandatory;
+/* Scroll progress indicator */
+#scroll-progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--color-teal);
+  z-index: 9998;
+  transform-origin: left;
+  transition: width 0.1s ease-out;
 }
 
-.snap-start {
-  scroll-snap-align: start;
+/* Smooth animations */
+.fade-in {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.snap-mandatory {
-  scroll-snap-stop: always;
+.fade-in.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
-/* Animations for Intro Screen */
-@keyframes slideUp {
-  0% {
+@keyframes fade-up {
+  from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(40px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-@keyframes fadeIn {
-  0% {
+@keyframes slide-in-left {
+  from {
     opacity: 0;
+    transform: translateX(-100px);
   }
-  100% {
+  to {
     opacity: 1;
-  }
-}
-
-@keyframes progressWidth {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
-}
-
-/* ── Marquee Animations ── */
-@keyframes marquee-left {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes marquee-right {
-  0% {
-    transform: translateX(-50%);
-  }
-  100% {
     transform: translateX(0);
   }
 }
 
-.animate-marquee-left {
-  animation: marquee-left 60s linear infinite;
+@keyframes reveal-mask {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
 }
 
-.animate-marquee-right {
-  animation: marquee-right 70s linear infinite;
+/* Utility classes */
+.pill {
+  border-radius: var(--radius-pill);
 }
 
-.animate-marquee-left:hover,
-.animate-marquee-right:hover {
-  animation-play-state: paused;
+.rounded-large {
+  border-radius: var(--radius-large);
 }
 
-/* Keep the interactive dot canvas visible as a background in both themes. */
-body > *:not(.dot-grid) {
-  position: relative;
-  z-index: 1;
+/* Section page indicators */
+.section-indicator {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+
+.section-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-muted);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.section-dot.active {
+  background: var(--color-black);
+  transform: scale(1.5);
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  #custom-cursor {
+    display: none;
+  }
+}
+
+/* Mobile cursor fallback */
+@media (hover: none) and (pointer: coarse) {
+  body,
+  body * {
+    cursor: auto !important;
+  }
+  
+  #custom-cursor {
+    display: none;
+  }
 }
