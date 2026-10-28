@@ -34,7 +34,7 @@ export default function InteractiveDotGrid() {
     // Detect theme by checking the 'dark' class on <html>
     function getInkColor(): string {
       const isDark = document.documentElement.classList.contains('dark');
-      return isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)';
+      return isDark ? 'rgba(240, 240, 236, 0.12)' : 'rgba(17, 17, 17, 0.08)';
     }
 
     class Dot {

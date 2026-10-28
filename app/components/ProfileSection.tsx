@@ -1,305 +1,206 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import CurtainDrag from './CurtainDrag';
+
+const scrollToSection = (id: string) => {
+  const mainScroll = document.getElementById('main-scroll');
+  const el = document.getElementById(id);
+  if (mainScroll && el) {
+    mainScroll.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+  }
+};
 
 export default function ProfileSection() {
-  const [progress, setProgress] = useState(0);
-  const [launched, setLaunched] = useState(false);
-
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const holdStartRef = useRef<number | null>(null);
-  const rafRef = useRef<number>(0);
-  const holdingRef = useRef(false);
-  const router = useRouter();
-
-  const HOLD_DURATION = 1200;
-
-  function tick() {
-    if (!holdingRef.current || holdStartRef.current === null) return;
-    const pct = Math.min(((performance.now() - holdStartRef.current) / HOLD_DURATION) * 100, 100);
-    setProgress(pct);
-    if (pct < 100) {
-      rafRef.current = requestAnimationFrame(tick);
-    } else {
-      holdingRef.current = false;
-      setLaunched(true);
-      
-      const section = document.getElementById('profile-section');
-      if (section) {
-        section.style.opacity = '0';
-        section.style.transform = 'scale(1.1) translateY(-40px)';
-        section.style.filter = 'blur(12px)';
-        section.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-      }
-      
-      window.dispatchEvent(new Event('page-exit'));
-      setTimeout(() => router.push('/skills'), 600);
-    }
-  }
-
-  const startHold = () => {
-    if (launched) return;
-    holdingRef.current = true;
-    holdStartRef.current = performance.now();
-    rafRef.current = requestAnimationFrame(tick);
-  };
-
-  const endHold = () => {
-    if (holdingRef.current) {
-      holdingRef.current = false;
-      cancelAnimationFrame(rafRef.current);
-      setProgress(0);
-    }
-  };
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const photoRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.1
+    // Animate title reveals on mount
+    const timer = setTimeout(() => {
+      const masks = document.querySelectorAll('#profile .reveal-mask');
+      masks.forEach((el, i) => {
+        setTimeout(() => el.classList.add('visible'), i * 120);
+      });
+
+      const fades = document.querySelectorAll('#profile .fade-up');
+      fades.forEach((el, i) => {
+        setTimeout(() => el.classList.add('visible'), 400 + i * 100);
+      });
+
+      const photos = document.querySelectorAll('#profile .photo-reveal');
+      photos.forEach((el, i) => {
+        setTimeout(() => el.classList.add('visible'), 200 + i * 150);
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Parallax on photo
+  useEffect(() => {
+    const mainScroll = document.getElementById('main-scroll');
+    const photo = photoRef.current;
+    if (!mainScroll || !photo) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const handleScroll = () => {
+      const scrollTop = mainScroll.scrollTop;
+      photo.style.transform = `translateY(${scrollTop * 0.25}px)`;
     };
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.fade-up').forEach(element => {
-      observer.observe(element);
-    });
-
-    return () => observer.disconnect();
+    mainScroll.addEventListener('scroll', handleScroll, { passive: true });
+    return () => mainScroll.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <section 
-      id="profile-section"
-      className="w-full flex flex-col items-center justify-center px-5 sm:px-8 md:px-16 xl:px-24 py-12 md:py-20"
-      style={{ transition: 'opacity 0.4s ease-out, transform 0.4s ease-out' }}
+    <section
+      ref={sectionRef}
+      className="relative w-full min-h-screen flex flex-col justify-center overflow-hidden pt-28 sm:pt-36 md:pt-40 pb-24 md:pb-32"
     >
-      <CurtainDrag />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center w-full">
-        <div className="lg:col-span-7 flex flex-col gap-6 order-2 lg:order-1 z-10">
-          <div className="fade-up opacity-0 translate-y-5 transition-all duration-700">
-            <span className="inline-block bg-canvas text-ink px-4 py-1 border-2 border-ink text-xs uppercase tracking-widest font-bold mb-2">
-              Junior Developer
-            </span>
-          </div>
-          
-          <h1 className="fade-up opacity-0 translate-y-5 transition-all duration-700 delay-100 text-[32px] sm:text-[48px] lg:text-[64px] leading-[1.1] tracking-tight font-bold text-ink uppercase font-[family-name:var(--font-family-display)]">
-            <span className="name-primary glitch-text" data-text="Mohammad Iqbal">Mohammad Iqbal</span> <br className="hidden sm:block" /><span className="text-ink-muted name-secondary glitch-text" data-text=" (Iqbaal)"> (Iqbaal)</span>
-          </h1>
-          
-          <p className="fade-up opacity-0 translate-y-5 transition-all duration-700 delay-200 text-lg leading-relaxed text-ink bg-canvas px-4 py-3 border-l-4 border-ink max-w-2xl font-mono">
-            An Informatics Engineering student focused on software and web development, with a strong understanding of programming logic and problem-solving. Ready to grow and contribute as a Junior Developer.
-          </p>
-          
-          <div className="fade-up opacity-0 translate-y-5 transition-all duration-700 delay-300 flex flex-wrap gap-6 mt-4">
-            <a 
-              href="/projects" 
-              className="bg-ink text-canvas border-2 border-ink uppercase text-xs tracking-widest font-bold py-3 px-8 transition-all duration-200 hover:bg-canvas hover:text-ink inline-flex justify-center items-center gap-3 w-full sm:w-auto"
-            >
-              View Projects
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-            
-            <a 
-              href="#" 
-              className="border-2 border-ink text-ink uppercase text-xs tracking-widest font-bold py-3 px-8 transition-all duration-200 hover:bg-ink hover:text-canvas inline-flex justify-center items-center gap-3 w-full sm:w-auto"
-            >
-              Download CV
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </a>
+      {/* ── Grid layout ── */}
+      <div className="px-6 sm:px-10 md:px-16 xl:px-24 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-start w-full">
+
+          {/* Left: Text content */}
+          <div className="lg:col-span-7 flex flex-col justify-center z-10 relative" ref={contentRef}>
+
+            {/* Label pill */}
+            <div className="fade-up mb-8">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-ink/20 text-ink-muted text-xs uppercase tracking-widest font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+                Junior Developer
+              </span>
+            </div>
+
+            {/* Giant title — bleeds off screen */}
+            <div ref={titleRef} className="mb-8 overflow-hidden">
+              <div className="reveal-mask">
+                <span
+                  className="block text-[clamp(60px,12vw,140px)] leading-[0.9] font-black uppercase tracking-[-0.04em] text-ink whitespace-nowrap"
+                  style={{ letterSpacing: '-0.04em' }}
+                >
+                  Mohammad
+                </span>
+              </div>
+              <div className="reveal-mask" style={{ transitionDelay: '80ms' }}>
+                <span
+                  className="block text-[clamp(60px,12vw,140px)] leading-[0.9] font-black uppercase tracking-[-0.04em] text-ink whitespace-nowrap"
+                  style={{ letterSpacing: '-0.04em' }}
+                >
+                  Iqbal
+                </span>
+              </div>
+              <div className="reveal-mask" style={{ transitionDelay: '160ms' }}>
+                <span
+                  className="block text-[clamp(60px,12vw,140px)] leading-[0.9] font-black uppercase tracking-[-0.04em] text-ink-muted whitespace-nowrap"
+                  style={{ letterSpacing: '-0.04em' }}
+                >
+                  (Iqbaal)
+                </span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="fade-up max-w-md mb-10" style={{ transitionDelay: '0.1s' }}>
+              <p className="text-sm leading-relaxed text-ink-muted text-justify font-medium">
+                An Informatics Engineering student focused on software and web development,
+                with a strong understanding of programming logic and problem-solving.
+                Ready to grow and contribute as a Junior Developer.
+              </p>
+            </div>
+
+            {/* CTA buttons */}
+            <div className="fade-up flex flex-wrap gap-3 mb-12" style={{ transitionDelay: '0.2s' }}>
+              <button
+                onClick={() => scrollToSection('projects')}
+                className="px-6 py-3 rounded-full bg-ink text-canvas text-xs uppercase tracking-widest font-bold hover:opacity-80 transition-opacity"
+              >
+                View Projects
+              </button>
+              <a
+                href="#"
+                className="px-6 py-3 rounded-full border border-ink/30 text-ink text-xs uppercase tracking-widest font-bold hover:border-ink hover:bg-ink/5 transition-all"
+              >
+                Download CV
+              </a>
+            </div>
+
+            {/* Social links */}
+            <div className="fade-up flex items-center gap-4" style={{ transitionDelay: '0.3s' }}>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-ink-muted font-semibold">Connect</span>
+              <span className="w-8 h-px bg-ink/20" />
+              <a
+                href="https://github.com/miqi4"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink-muted hover:text-ink transition-colors"
+                aria-label="GitHub"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+              </a>
+              <a
+                href="https://www.linkedin.com/in/mohammad-iqbal-766023386/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink-muted hover:text-ink transition-colors"
+                aria-label="LinkedIn"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+              </a>
+            </div>
           </div>
 
-          <div className="fade-up opacity-0 translate-y-5 transition-all duration-700 delay-300 flex items-center gap-3 mt-6 pt-6 border-t-2 border-ink/20">
-            <span className="text-xs tracking-widest text-ink font-bold uppercase">Connect</span>
-            <div className="w-8 h-[2px] bg-ink"></div>
-            <a 
-              href="https://github.com/miqi4" 
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub" 
-              className="text-ink hover:text-canvas hover:bg-ink transition-colors p-3 border-2 border-transparent hover:border-ink"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
-            </a>
-            <a 
-              href="https://www.linkedin.com/in/mohammad-iqbal-766023386/" 
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn" 
-              className="text-ink hover:text-canvas hover:bg-ink transition-colors p-3 border-2 border-transparent hover:border-ink"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-              </svg>
-            </a>
-          </div>
-        </div>
+          {/* Right: Photo — editorial bold crop */}
+          <div className="lg:col-span-5 relative flex justify-end items-start mt-16 lg:mt-0">
+            {/* Page label pill */}
+            <div className="absolute -left-4 bottom-8 z-20 hidden lg:block">
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink text-canvas text-[10px] uppercase tracking-widest font-bold">
+                01 / Profile
+              </span>
+            </div>
 
-        <div className="lg:col-span-5 order-1 lg:order-2 flex justify-center lg:justify-end fade-up opacity-0 translate-y-5 transition-all duration-700 delay-200">
-          <div className="relative w-[260px] h-[260px] sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 border-4 border-ink grayscale hover:grayscale-0 transition-all duration-500 shadow-[8px_8px_0_0_var(--ink)]">
-            <Image 
-              alt="Mohammad Iqbal Profile" 
-              src="/profil.jpeg"
-              width={400}
-              height={400}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-              priority
-            />
+            {/* Photo */}
+            <div
+              ref={photoRef}
+              className="relative w-[280px] sm:w-[340px] lg:w-[400px] xl:w-[440px] aspect-[3/4] overflow-hidden rounded-3xl"
+              style={{ willChange: 'transform' }}
+            >
+              <div className="photo-reveal w-full h-full">
+                <Image
+                  alt="Mohammad Iqbal"
+                  src="/profil.jpeg"
+                  fill
+                  className="object-cover grayscale contrast-125 brightness-90"
+                  priority
+                />
+              </div>
+
+              {/* Overlay gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent rounded-3xl pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Divider ── */}
-      <div className="w-full mt-24 mb-10 flex items-center gap-6 fade-up opacity-0 translate-y-5 transition-all duration-700 delay-500">
-        <div className="flex-1 h-[2px] bg-ink" />
-        <span className="text-xs tracking-[0.25em] font-bold text-ink uppercase select-none text-center bg-canvas px-4 border-2 border-ink">
-          Explore My Expertise
-        </span>
-        <div className="flex-1 h-[2px] bg-ink" />
-      </div>
-
-      {/* ── Navigate to Skills CTA ── */}
-      <div className="flex flex-col items-center gap-5 pb-12 fade-up opacity-0 translate-y-5 transition-all duration-700 delay-[600ms]">
-        <p className="text-ink-muted text-sm tracking-wide text-center uppercase font-mono">
-          Discover the technologies I work with
-        </p>
-
+      {/* ── Scroll indicator ── */}
+      <div className="fade-up absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ transitionDelay: '0.6s' }}>
         <button
-          ref={btnRef}
-          id="view-skills-btn"
-          onMouseDown={startHold}
-          onMouseUp={endHold}
-          onMouseLeave={endHold}
-          onTouchStart={startHold}
-          onTouchEnd={endHold}
-          aria-label="Hold to navigate to Skills page"
-          className="relative overflow-hidden cursor-pointer select-none"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '16px 32px',
-            border: `2px solid var(--ink)`,
-            background: 'var(--canvas)',
-            transition: 'border-color 0.2s ease',
-            color: 'var(--ink)',
-            textTransform: 'uppercase',
-            fontWeight: 'bold',
-            letterSpacing: '0.1em'
-          }}
+          onClick={() => scrollToSection('skills')}
+          className="flex flex-col items-center gap-2 text-ink-muted hover:text-ink transition-colors group"
+          aria-label="Scroll to Skills"
         >
-          <span
-            aria-hidden
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'var(--ink)',
-              transformOrigin: 'left',
-              transform: `scaleX(${progress / 100})`,
-              transition: progress === 0 ? 'transform 0.25s ease' : 'none',
-              zIndex: 0,
-            }}
-          />
-          <svg
-            className="w-5 h-5 relative z-10"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            style={{
-              color: progress > 50 ? 'var(--canvas)' : 'var(--ink)',
-              transition: 'color 0.1s ease, transform 0.3s ease',
-              transform: launched ? 'translateX(4px)' : 'none',
-            }}
-          >
-            <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-          </svg>
-          <span
-            className="relative z-10 text-sm font-bold tracking-widest min-w-[140px] text-center"
-            style={{
-              color: progress > 50 ? 'var(--canvas)' : 'var(--ink)',
-              transition: 'color 0.1s ease',
-            }}
-          >
-            {launched ? 'OPENING...' : progress > 0 ? `${Math.round(progress)}%` : 'HOLD TO CONTINUE'}
-          </span>
+          <span className="text-[10px] uppercase tracking-[0.2em] font-semibold">Scroll</span>
+          <div className="w-px h-10 bg-ink/20 group-hover:bg-ink/50 transition-colors" />
         </button>
       </div>
-
-      <style jsx>{`
-        .glitch-text {
-          position: relative;
-          cursor: default;
-          isolation: isolate;
-        }
-
-        .glitch-text::before,
-        .glitch-text::after {
-          content: attr(data-text);
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          opacity: 0;
-          z-index: 1;
-          text-shadow: 2px 0 currentColor, -2px 0 currentColor;
-        }
-
-        .glitch-text:hover::before {
-          color: #ff3158;
-          opacity: 0.7;
-          animation: text-glitch-red 160ms steps(2, end) infinite;
-        }
-
-        .glitch-text:hover::after {
-          color: #18d9ff;
-          opacity: 0.7;
-          animation: text-glitch-cyan 140ms steps(2, end) infinite reverse;
-        }
-
-        @keyframes text-glitch-red {
-          0%, 100% { clip-path: inset(8% 0 72% 0); transform: translate(-3px, -1px); }
-          35% { clip-path: inset(48% 0 28% 0); transform: translate(3px, 1px); }
-          70% { clip-path: inset(78% 0 4% 0); transform: translate(-3px, 0); }
-        }
-
-        @keyframes text-glitch-cyan {
-          0%, 100% { clip-path: inset(68% 0 10% 0); transform: translate(3px, 1px); }
-          40% { clip-path: inset(16% 0 58% 0); transform: translate(-3px, 0); }
-          75% { clip-path: inset(38% 0 36% 0); transform: translate(2px, -1px); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .glitch-text:hover::before,
-          .glitch-text:hover::after {
-            animation: none;
-            opacity: 0;
-          }
-        }
-        .name-primary, .name-secondary {
-          display: inline-block;
-          will-change: transform, opacity;
-        }
-
-        .fade-up.visible {
-          opacity: 1 !important;
-          transform: translateY(0) !important;
-        }
-      `}</style>
     </section>
   );
 }

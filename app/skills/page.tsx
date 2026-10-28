@@ -1,5 +1,5 @@
-import SkillsSection from '../components/SkillsSection';
+import { redirect } from 'next/navigation';
 
 export default function SkillsPage() {
-  return <SkillsSection />;
+  redirect('/#skills');
 }

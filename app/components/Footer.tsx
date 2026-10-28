@@ -1,34 +1,30 @@
 export default function Footer() {
   return (
-    <footer className="bg-canvas border-t-2 border-ink w-full flex-shrink-0">
-      <div className="flex flex-col md:flex-row justify-between items-center w-full px-5 sm:px-8 py-4 mx-auto gap-2">
-        <div className="text-sm tracking-widest font-bold uppercase text-ink text-center md:text-left">
-          © 2024 Mohammad Iqbal.
+    <footer className="w-full border-t border-ink/10 bg-canvas flex-shrink-0">
+      <div className="px-6 sm:px-10 md:px-16 xl:px-24 py-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div className="flex items-center gap-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+          <span className="text-xs tracking-widest font-bold uppercase text-ink-muted">
+            © 2024 Mohammad Iqbal
+          </span>
         </div>
-        
-        <div className="flex gap-6">
-          <a 
-            href="https://github.com/miqi4" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm tracking-widest font-bold uppercase text-ink-muted hover:text-ink transition-colors duration-200"
-          >
-            GitHub
-          </a>
-          <a 
-            href="https://www.linkedin.com/in/mohammad-iqbal-766023386/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm tracking-widest font-bold uppercase text-ink-muted hover:text-ink transition-colors duration-200"
-          >
-            LinkedIn
-          </a>
-          <a 
-            href="mailto:mdiqbaal412@gmail.com"
-            className="text-sm tracking-widest font-bold uppercase text-ink-muted hover:text-ink transition-colors duration-200"
-          >
-            Email
-          </a>
+
+        <div className="flex gap-5">
+          {[
+            { label: 'GitHub', href: 'https://github.com/miqi4' },
+            { label: 'LinkedIn', href: 'https://www.linkedin.com/in/mohammad-iqbal-766023386/' },
+            { label: 'Email', href: 'mailto:mdiqbaal412@gmail.com' },
+          ].map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              target={href.startsWith('http') ? '_blank' : undefined}
+              rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className="text-xs tracking-widest font-semibold uppercase text-ink-muted hover:text-ink transition-colors duration-200"
+            >
+              {label}
+            </a>
+          ))}
         </div>
       </div>
     </footer>

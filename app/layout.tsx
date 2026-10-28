@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
-import { Tiny5 } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import TransitionOverlay from "./components/TransitionOverlay";
 import IntroScreen from "./components/IntroScreen";
 import InteractiveDotGrid from "./components/InteractiveDotGrid";
+import CustomCursor from "./components/CustomCursor";
+import ScrollProgress from "./components/ScrollProgress";
 import { ThemeProvider } from "./components/ThemeProvider";
 
-const tiny5 = Tiny5({
-  weight: "400",
+const poppins = Poppins({
+  weight: ["400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
-  variable: "--font-tiny5",
+  variable: "--font-poppins",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Mohammad Iqbal - Junior Developer",
+  title: "Mohammad Iqbal — Junior Developer",
   description: "Portfolio website of Mohammad Iqbal, a junior developer specializing in Next.js, Laravel, and Java",
 };
 
@@ -26,17 +27,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${tiny5.variable} bg-canvas transition-colors duration-300`}>
+    <html lang="en" suppressHydrationWarning className={`${poppins.variable} bg-canvas transition-colors duration-300`}>
       <body className="h-screen w-screen flex flex-col antialiased overflow-hidden bg-transparent text-ink">
         <ThemeProvider>
+          <CustomCursor />
+          <ScrollProgress />
           <InteractiveDotGrid />
           <IntroScreen />
           <Header />
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto scroll-smooth" id="main-scroll">
             {children}
           </main>
           <Footer />
-          <TransitionOverlay />
         </ThemeProvider>
       </body>
     </html>
